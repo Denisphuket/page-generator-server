@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  mongo:
+    image: mongo:latest
+    container_name: mongo_container
+    restart: always  # Автоматический перезапуск контейнера MongoDB
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db  # Подключаем volume к MongoDB для сохранения данных
+    networks:
+      - app-network
+
+  server:
+    build: .
+    container_name: local_server
+    restart: always  # Автоматический перезапуск контейнера сервера
+    ports:
+      - "33000:33000"
+    depends_on:
+      - mongo
+    networks:
+      - app-network
+
+volumes:
+  mongo-data:
+
+networks:
+  app-network:
+    driver: bridge
