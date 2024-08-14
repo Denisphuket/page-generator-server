@@ -9,6 +9,8 @@ services:
       - "27017:27017"
     volumes:
       - mongo-data:/data/db  # Подключаем volume к MongoDB для сохранения данных
+      - ./mongod.conf:/etc/mongod.conf  # Подключаем конфигурационный файл
+    command: mongod --config /etc/mongod.conf  # Используем конфигурационный файл
     networks:
       - app-network
 
@@ -22,6 +24,9 @@ services:
       - mongo
     networks:
       - app-network
+    environment:
+      - JWT_SECRET=your_jwt_secret_here
+      - REGISTRATION_SECRET_CODE=your_registration_code_here
 
 volumes:
   mongo-data:

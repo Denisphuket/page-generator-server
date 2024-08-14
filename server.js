@@ -12,8 +12,8 @@ const REGISTRATION_SECRET_CODE = process.env.REGISTRATION_SECRET_CODE || 'defaul
 
 // Подключение к MongoDB
 mongoose.connect('mongodb://mongo:27017/TelegaUrl', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
+    // useNewUrlParser: true,
+    // useUnifiedTopology: true,
 });
 
 // Middleware
