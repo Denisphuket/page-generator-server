@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -9,12 +11,8 @@ const PORT = process.env.PORT || 33000;
 const JWT_SECRET = process.env.JWT_SECRET || 'saflkndvkljdsldkshfdshgf324cvmpsdlkor39320';
 const REGISTRATION_SECRET_CODE = process.env.REGISTRATION_SECRET_CODE || 'default_registration_secret_code';
 
-
 // Подключение к MongoDB
-mongoose.connect('mongodb://mongo:27017/TelegaUrl', {
-    // useNewUrlParser: true,
-    // useUnifiedTopology: true,
-});
+mongoose.connect('mongodb://mongo:27017/TelegaUrl', );
 
 // Middleware
 app.use(cors());
@@ -35,6 +33,7 @@ const PageSchema = new mongoose.Schema({
     path: { type: String, unique: true },
     html: String,
     images: { type: Map, of: String }, // если изображения хранятся как ключ-значение
+    yandexMetrikaId: String
 });
 
 const Page = mongoose.model('Page', PageSchema);
@@ -57,7 +56,6 @@ const authenticateToken = (req, res, next) => {
         next();
     });
 };
-
 
 // Маршрут для регистрации
 app.post('/api/auth/register', async (req, res) => {
@@ -124,18 +122,21 @@ app.post('/api/auth/verify-token', (req, res) => {
     });
 });
 
+// Маршрут для получения страницы по пути (без аутентификации)
+app.get('/api/pages/:path', async (req, res) => {
+    try {
+        const page = await Page.findOne({ path: req.params.path });
+        if (!page) {
+            return res.status(404).json({ message: 'Страница не найдена' });
+        }
+        res.json(page);
+    } catch (error) {
+        res.status(500).json({ message: 'Ошибка при получении страницы', error });
+    }
+});
+
 // Все маршруты ниже требуют аутентификации
 app.use('/api/pages', authenticateToken);
-
-// // Маршрут для получения всех страниц
-// app.get('/api/pages', async (req, res) => {
-//     try {
-//         const pages = await Page.find({});
-//         res.json(pages);
-//     } catch (error) {
-//         res.status(500).json({ message: 'Ошибка при получении страниц', error });
-//     }
-// });
 
 // Маршрут для получения всех страниц с пагинацией
 app.get('/api/pages', async (req, res) => {
@@ -159,33 +160,19 @@ app.get('/api/pages', async (req, res) => {
     }
 });
 
-
-// Маршрут для получения страницы по пути
-app.get('/api/pages/:path', async (req, res) => {
-    try {
-        const page = await Page.findOne({ path: req.params.path });
-        if (!page) {
-            return res.status(404).json({ message: 'Страница не найдена' });
-        }
-        res.json(page);
-    } catch (error) {
-        res.status(500).json({ message: 'Ошибка при получении страницы', error });
-    }
-});
-
 // Маршрут для создания или обновления страницы
 app.post('/api/pages', async (req, res) => {
-    const { _id, title, path, html, images } = req.body;
+    const { _id, title, path, html, images, yandexMetrikaId } = req.body;
 
     try {
         if (_id) {
-            const updatedPage = await Page.findByIdAndUpdate(_id, { title, path, html, images }, { new: true });
+            const updatedPage = await Page.findByIdAndUpdate(_id, { title, path, html, images, yandexMetrikaId }, { new: true });
             if (!updatedPage) {
                 return res.status(404).json({ message: 'Страница не найдена для обновления' });
             }
             res.json({ message: 'Страница успешно обновлена', page: updatedPage });
         } else {
-            const newPage = new Page({ title, path, html, images });
+            const newPage = new Page({ title, path, html, images, yandexMetrikaId });
             await newPage.save();
             res.json({ message: 'Страница успешно создана', page: newPage });
         }

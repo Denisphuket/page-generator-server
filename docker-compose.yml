@@ -24,9 +24,8 @@ services:
       - mongo
     networks:
       - app-network
-    environment:
-      - JWT_SECRET=your_jwt_secret_here
-      - REGISTRATION_SECRET_CODE=your_registration_code_here
+    env_file:
+      - .env  # Подключаем файл .env
 
 volumes:
   mongo-data:
